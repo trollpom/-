@@ -160,6 +160,7 @@ body{
   display:grid; place-items:center; font-size:18px; backdrop-filter: blur(12px);
   transition:.2s;
 }
+.btn-icon.muted{opacity:.5; filter: grayscale(.8)}
 .btn-icon:hover{transform: scale(1.05) rotate(12deg); border-color: var(--accent)}
 
 .app{
