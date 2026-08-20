@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="nebula">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TIC TAC THREE — Современные крестики-нолики</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grain"></div>
+  </div>
+
+  <header class="header">
+    <div class="logo">
+      <div class="logo-mark">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div>
+        <h1>TIC TAC <em>THREE</em></h1>
+        <p>современная классика • 3×3</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="score-mini" id="scoreMini">
+        <span class="s1"><b id="scoreX">0</b> X</span>
+        <span class="sep"></span>
+        <span class="s2">O <b id="scoreO">0</b></span>
+        <span class="sep"></span>
+        <span class="sD">— <b id="scoreD">0</b></span>
+      </div>
+      <button class="btn-icon" id="btnSound" aria-label="Звук">🔊</button>
+      <button class="btn-icon" id="btnReset" aria-label="Сброс">↻</button>
+    </div>
+  </header>
+
+  <main class="app">
+    <!-- LEFT -->
+    <aside class="panel left-panel">
+      <section class="card">
+        <div class="card-head">
+          <h2>Режим игры</h2>
+          <span class="badge">3×3 поле</span>
+        </div>
+        <div class="mode-grid">
+          <button class="mode-btn active" data-mode="bot">
+            <div class="mode-icon">🤖</div>
+            <div class="mode-text">
+              <strong>С ботом</strong>
+              <span>Играй с AI</span>
+            </div>
+            <div class="check"></div>
+          </button>
+          <button class="mode-btn" data-mode="friend">
+            <div class="mode-icon">👥</div>
+            <div class="mode-text">
+              <strong>Друг vs Друг</strong>
+              <span>На одном устройстве</span>
+            </div>
+            <div class="check"></div>
+          </button>
+          <button class="mode-btn" data-mode="online">
+            <div class="mode-icon">🌐</div>
+            <div class="mode-text">
+              <strong>Онлайн</strong>
+              <span>P2P по коду</span>
+            </div>
+            <div class="check"></div>
+          </button>
+        </div>
+
+        <div class="sub-panel" id="botPanel">
+          <h3>Сложность бота</h3>
+          <div class="pill-group" data-group="difficulty">
+            <button data-value="easy">Легко</button>
+            <button data-value="medium" class="active">Средне</button>
+            <button data-value="hard">Невозм.</button>
+          </div>
+        </div>
+
+        <div class="sub-panel hidden" id="onlinePanel">
+          <h3>Онлайн лобби</h3>
+          <div id="onlineInitial">
+            <div class="online-actions">
+              <button class="btn primary full" id="btnCreateRoom">Создать комнату</button>
+              <div class="divider"><span>или</span></div>
+              <div class="join-row">
+                <input id="joinCodeInput" placeholder="КОД КОМНАТЫ" maxlength="6" />
+                <button class="btn" id="btnJoinRoom">Войти</button>
+              </div>
+            </div>
+            <p class="hint">Комната работает через P2P. Никаких серверов кроме соединения.</p>
+          </div>
+          <div id="onlineLobby" class="hidden">
+            <div class="lobby-code">
+              <span>КОД</span>
+              <strong id="roomCodeDisplay">—</strong>
+              <button class="btn-icon small" id="btnCopyCode">⎙</button>
+            </div>
+            <div class="lobby-status" id="lobbyStatus">Ожидание соперника...</div>
+            <div class="players-vs">
+              <div class="pv"><div class="avatar x"></div><span>Вы (X)</span></div>
+              <div class="vs">VS</div>
+              <div class="pv"><div class="avatar o dimmed" id="oppAvatar"></div><span id="oppLabel">Ожидание...</span></div>
+            </div>
+            <button class="btn ghost full" id="btnLeaveRoom">Покинуть комнату</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Правила — Три фигуры</h2>
+          <label class="switch">
+            <input type="checkbox" id="threeFiguresToggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="rule-desc" id="ruleDesc">
+          <p class="classic on"><strong>Классика:</strong> ставьте 3 в ряд. Ничьи возможны.</p>
+          <p class="three"><strong>Три фигуры:</strong> у каждого макс. 3 метки. 4-й ход стирает самую старую. Ничьих нет, игра бесконечна и тактична!</p>
+        </div>
+        <div class="queue-preview" id="queuePreview">
+          <div class="q q-x"><span>X очередь:</span><div class="dots" id="queueX"></div></div>
+          <div class="q q-o"><span>O очередь:</span><div class="dots" id="queueO"></div></div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- CENTER -->
+    <section class="center">
+      <div class="turn-indicator" id="turnIndicator">
+        <div class="turn-card x active" data-player="X">
+          <div class="fig-preview" id="turnXFig"></div>
+          <div class="turn-info">
+            <strong>Игрок X</strong>
+            <span>Ваш ход</span>
+          </div>
+          <div class="turn-glow"></div>
+        </div>
+        <div class="turn-card o" data-player="O">
+          <div class="fig-preview" id="turnOFig"></div>
+          <div class="turn-info">
+            <strong>Игрок O</strong>
+            <span>Ожидает</span>
+          </div>
+          <div class="turn-glow"></div>
+        </div>
+      </div>
+
+      <div class="board-shell">
+        <div class="board" id="board">
+          <!-- 9 cells generated by JS -->
+        </div>
+        <svg class="win-line" id="winLine" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <line x1="0" y1="0" x2="0" y2="0" />
+        </svg>
+        <div class="board-vignette"></div>
+      </div>
+
+      <div class="result-overlay hidden" id="resultOverlay">
+        <div class="result-card">
+          <div class="result-fig" id="resultFig"></div>
+          <h2 id="resultTitle">X побеждает!</h2>
+          <p id="resultSub">Линия собрана</p>
+          <div class="result-actions">
+            <button class="btn primary" id="btnNextRound">Следующий раунд</button>
+            <button class="btn" id="btnShareWin">Поделиться</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-stats">
+        <div class="stat"><span>Раундов</span><b id="roundsCount">0</b></div>
+        <div class="stat"><span>Серия X</span><b id="streakX">0</b></div>
+        <div class="stat"><span>Серия O</span><b id="streakO">0</b></div>
+        <div class="stat"><span>Ходов</span><b id="movesCount">0</b></div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="panel right-panel">
+      <section class="card">
+        <div class="card-head">
+          <h2>Дизайн</h2>
+          <span class="badge pulse">3 темы</span>
+        </div>
+        <div class="design-grid">
+          <button class="design-btn active" data-theme="nebula">
+            <div class="design-preview nebula">
+              <div class="dp-orb"></div><div class="dp-grid"></div>
+            </div>
+            <div class="design-info">
+              <strong>Nebula</strong>
+              <span>Неон, стекло, космос</span>
+            </div>
+          </button>
+          <button class="design-btn" data-theme="frost">
+            <div class="design-preview frost">
+              <div class="dp-orb"></div><div class="dp-grid"></div>
+            </div>
+            <div class="design-info">
+              <strong>Frost</strong>
+              <span>Светлый минимализм</span>
+            </div>
+          </button>
+          <button class="design-btn" data-theme="clay">
+            <div class="design-preview clay">
+              <div class="dp-orb"></div><div class="dp-grid"></div>
+            </div>
+            <div class="design-info">
+              <strong>Clay</strong>
+              <span>Мягкая пастель 3D</span>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Фигуры</h2>
+          <span class="badge">3 набора</span>
+        </div>
+        <div class="figure-grid">
+          <button class="figure-btn active" data-figures="classic">
+            <div class="fig-sample">
+              <div class="fs x"><span class="icon-x"></span></div>
+              <div class="fs o"><span class="icon-o"></span></div>
+            </div>
+            <div class="fig-label">
+              <strong>Classic</strong>
+              <span>× ○ — чистая геометрия</span>
+            </div>
+          </button>
+          <button class="figure-btn" data-figures="cosmic">
+            <div class="fig-sample">
+              <div class="fs x"><span class="icon-star"></span></div>
+              <div class="fs o"><span class="icon-moon"></span></div>
+            </div>
+            <div class="fig-label">
+              <strong>Cosmic</strong>
+              <span>✦ ☾ — звёзды и луна</span>
+            </div>
+          </button>
+          <button class="figure-btn" data-figures="neo">
+            <div class="fig-sample">
+              <div class="fs x"><span class="icon-bolt"></span></div>
+              <div class="fs o"><span class="icon-drop"></span></div>
+            </div>
+            <div class="fig-label">
+              <strong>Neo Pop</strong>
+              <span>⚡ ◍ — энергия и капля</span>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <section class="card small">
+        <div class="card-head">
+          <h2>Как играть</h2>
+        </div>
+        <ul class="howto">
+          <li>Собери <b>3 в ряд</b> — горизонтально, вертикально, диагонально</li>
+          <li>В режиме <b>Три фигуры</b> — старейшая фигура исчезает на 4-м ходу</li>
+          <li>Меняй <b>дизайн и фигуры</b> в любой момент — игра не сбрасывается</li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <script type="module" src="./audio.js"></script>
+  <script type="module" src="./bg.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
