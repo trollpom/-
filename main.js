@@ -1,4 +1,5 @@
-/*** TIC TAC THREE - Main Game Logic ***/
+/*** TIC TAC THREE - Main Game Logic + Audio Integration ***/
+import { audio } from './audio.js';
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
@@ -73,7 +74,7 @@ const queueO = $('#queueO');
 const winLine = $('#winLine');
 const toastStack = $('#toastStack');
 
-// Init board cells
+// Init board cells with hover sound
 function buildBoard(){
   boardEl.innerHTML='';
   for(let i=0;i<9;i++){
@@ -81,8 +82,12 @@ function buildBoard(){
     cell.className='cell';
     cell.dataset.index=i;
     cell.addEventListener('click',()=>onCellClick(i));
-    // hover hint for three-figures
-    cell.addEventListener('mouseenter',()=>showWillRemoveHint(i));
+    cell.addEventListener('mouseenter',()=>{
+      showWillRemoveHint(i);
+      if(!cell.innerHTML && !state.gameOver){
+        // throttled hover sound handled globally but extra here
+      }
+    });
     cell.addEventListener('mouseleave',()=>clearHints());
     boardEl.appendChild(cell);
   }
@@ -110,12 +115,14 @@ function onCellClick(idx){
 
 function makeMove(idx, player){
   if(state.gameOver) return;
+  let removed = false;
   // three figures logic
   if(state.threeFigures){
     state.queues[player].push(idx);
     if(state.queues[player].length > 3){
       const oldest = state.queues[player].shift();
       state.board[oldest]=null;
+      removed = true;
       const oldCell = boardEl.children[oldest];
       if(oldCell){
         const content = oldCell.querySelector('.cell-content');
@@ -130,6 +137,8 @@ function makeMove(idx, player){
   state.moves++;
   renderCell(idx, player);
   updateQueuesUI();
+  if(removed) setTimeout(()=>audio.remove(), 80);
+  audio.place(player);
 
   const win = checkWin();
   if(win){
@@ -177,6 +186,7 @@ function handleWin(player, combo){
   state.rounds++;
   saveStats();
   updateScoreUI();
+  audio.win();
 
   // result overlay
   setTimeout(()=>{
@@ -192,6 +202,7 @@ function handleDraw(){
   state.streak.X=0; state.streak.O=0;
   saveStats();
   updateScoreUI();
+  audio.draw();
   setTimeout(()=>{
     showResult('Ничья!', 'Похоже, сегодня дружба. Сыграем ещё?', null);
   }, 320);
@@ -678,52 +689,84 @@ updateQueuesUI();
 updateMovesUI();
 updateWillRemoveMarks();
 
-// Events
+// Events with sound
+function withClick(fn){ return (...a)=>{ audio.click(); fn(...a); }; }
+
 $$('.mode-btn').forEach(btn=>{
-  btn.addEventListener('click',()=> setMode(btn.dataset.mode));
+  btn.addEventListener('click', withClick(()=> setMode(btn.dataset.mode)));
+  btn.addEventListener('mouseenter', ()=> audio.hover());
 });
 $$('[data-group="difficulty"] button').forEach(b=>{
-  b.addEventListener('click',()=> setDifficulty(b.dataset.value));
+  b.addEventListener('click', withClick(()=> setDifficulty(b.dataset.value)));
 });
 $$('.design-btn').forEach(b=>{
-  b.addEventListener('click',()=> applyTheme(b.dataset.theme));
+  b.addEventListener('click', withClick(()=> applyTheme(b.dataset.theme)));
+  b.addEventListener('mouseenter', ()=> audio.hover());
 });
 $$('.figure-btn').forEach(b=>{
-  b.addEventListener('click',()=> applyFigures(b.dataset.figures));
+  b.addEventListener('click', withClick(()=> applyFigures(b.dataset.figures)));
+  b.addEventListener('mouseenter', ()=> audio.hover());
 });
-$('#btnReset').addEventListener('click',()=>{
+$('#btnReset').addEventListener('click', withClick(()=>{
   state.scores={X:0,O:0,D:0}; state.streak={X:0,O:0}; state.rounds=0;
   saveStats(); updateScoreUI(); resetBoard(false); toast('Статистика и поле сброшены');
-});
-$('#btnNextRound').addEventListener('click',()=>{ resetBoard(true); });
-$('#btnShareWin').addEventListener('click',()=>{
+}));
+$('#btnNextRound').addEventListener('click', withClick(()=>{ resetBoard(true); }));
+$('#btnShareWin').addEventListener('click', withClick(()=>{
   const txt=`Я выиграл в TIC TAC THREE! Счет ${state.scores.X}:${state.scores.O} 🎯`;
   if(navigator.share){ navigator.share({title:'TIC TAC THREE', text:txt}).catch(()=>{}); }
   else { navigator.clipboard.writeText(txt).then(()=>toast('Скопировано в буфер')); }
-});
+}));
 $('#threeFiguresToggle').addEventListener('change', e=>{
+  audio.click();
   state.threeFigures=e.target.checked;
   localStorage.setItem('ttt-three', state.threeFigures?'1':'0');
   updateRuleDesc();
   resetBoard(true);
   toast(state.threeFigures ? 'Режим Три фигуры включён' : 'Классический режим');
 });
-$('#btnCreateRoom').addEventListener('click', createRoom);
-$('#btnJoinRoom').addEventListener('click', joinRoom);
-$('#btnLeaveRoom').addEventListener('click', leaveRoom);
-$('#btnCopyCode').addEventListener('click', ()=>{
+$('#btnCreateRoom').addEventListener('click', withClick(createRoom));
+$('#btnJoinRoom').addEventListener('click', withClick(joinRoom));
+$('#btnLeaveRoom').addEventListener('click', withClick(leaveRoom));
+$('#btnCopyCode').addEventListener('click', withClick(()=>{
   if(state.roomCode){ navigator.clipboard.writeText(state.roomCode).then(()=>toast('Код скопирован')); }
+}));
+$('#joinCodeInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ audio.click(); joinRoom(); } });
+
+const btnSound = $('#btnSound');
+function updateSoundBtn(){
+  if(!btnSound) return;
+  btnSound.textContent = audio.isEnabled() ? '🔊' : '🔇';
+  btnSound.classList.toggle('muted', !audio.isEnabled());
+}
+btnSound?.addEventListener('click', ()=>{
+  const on = audio.toggle();
+  updateSoundBtn();
+  toast(on ? 'Звук включен' : 'Звук выключен');
+  if(on){ audio.start(); }
 });
-$('#joinCodeInput').addEventListener('keydown', e=>{ if(e.key==='Enter') joinRoom(); });
+updateSoundBtn();
 
 resultOverlay.addEventListener('click', e=>{
-  if(e.target===resultOverlay) hideResult();
+  if(e.target===resultOverlay){ audio.click(); hideResult(); }
 });
 
 // Keyboard shortcuts: R reset, N next
 window.addEventListener('keydown', e=>{
-  if(e.key.toLowerCase()==='r') resetBoard(true);
-  if(e.key.toLowerCase()==='n' && !resultOverlay.classList.contains('hidden')) resetBoard(true);
+  if(e.key.toLowerCase()==='r'){ audio.click(); resetBoard(true); }
+  if(e.key.toLowerCase()==='n' && !resultOverlay.classList.contains('hidden')){ audio.click(); resetBoard(true); }
+  if(e.key==='m' || e.key==='M'){ btnSound?.click(); }
+});
+
+// Board hover sound throttle
+let lastHover = 0;
+[...boardEl.children].forEach(cell=>{
+  cell.addEventListener('mouseenter', ()=>{
+    if(Date.now()-lastHover>140 && !cell.innerHTML && !state.gameOver){
+      lastHover=Date.now();
+      audio.hover();
+    }
+  });
 });
 
 // Initial mode UI

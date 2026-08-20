@@ -82,8 +82,30 @@ body{
   transition: background .6s, color .4s;
   -webkit-font-smoothing: antialiased;
 }
+#bgCanvas{
+  position: fixed; inset:0; width:100%; height:100%;
+  z-index:-2; pointer-events:none; display:block;
+}
 .bg-orbs{
   position: fixed; inset:0; pointer-events:none; z-index:-1; overflow:hidden;
+}
+.grain{
+  position:absolute; inset:-50%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity:.035; mix-blend-mode: soft-light; pointer-events:none;
+  animation: grainMove 8s steps(10) infinite;
+}
+@keyframes grainMove{
+  0%,100%{transform: translate(0,0)}
+  10%{transform: translate(-1%, -1%)}
+  20%{transform: translate(-2%, 1%)}
+  30%{transform: translate(1%, -2%)}
+  40%{transform: translate(-1%, 2%)}
+  50%{transform: translate(2%, 1%)}
+  60%{transform: translate(-2%, 0%)}
+  70%{transform: translate(1%, 1%)}
+  80%{transform: translate(0%, -1%)}
+  90%{transform: translate(-1%, -2%)}
 }
 .orb{
   position:absolute; border-radius: 50%; filter: blur(70px); opacity:.55;
@@ -297,6 +319,9 @@ body{
   border-radius: var(--radius-xl); padding:16px;
   backdrop-filter: blur(22px); box-shadow: var(--shadow-hard);
   overflow:hidden;
+  transform-style: preserve-3d;
+  transition: transform .6s cubic-bezier(.2,.8,.2,1), box-shadow .4s;
+  will-change: transform;
 }
 .board{
   width:100%; height:100%; display:grid; grid-template-columns: repeat(3,1fr); grid-template-rows: repeat(3,1fr);
