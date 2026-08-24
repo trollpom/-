@@ -346,7 +346,7 @@ body{
 .cell.will-remove{outline: 2px dashed color-mix(in srgb, var(--o) 60%, transparent); outline-offset:-2px}
 
 .cell-content{
-  width:68%; height:68%; display:grid; place-items:center;
+  width:92%; height:92%; display:grid; place-items:center;
   animation: popIn .42s cubic-bezier(.34,1.56,.64,1);
 }
 @keyframes popIn{
@@ -366,7 +366,7 @@ body{
 .fig-drop{fill: var(--o)}
 
 .cell-content .icon{
-  font-family: var(--font-display); font-weight:800; font-size: clamp(28px, 6vw, 48px); line-height:1;
+  font-family: var(--font-display); font-weight:800; font-size: clamp(44px, 10vw, 76px); line-height:1;
 }
 .cell-content.x .icon{color: var(--x); text-shadow: 0 6px 20px color-mix(in srgb, var(--x) 35%, transparent)}
 .cell-content.o .icon{color: var(--o); text-shadow: 0 6px 20px color-mix(in srgb, var(--o) 35%, transparent)}
@@ -394,6 +394,11 @@ body{
   background: color-mix(in srgb, var(--bg) 60%, transparent);
   border-radius: var(--radius-xl);
   animation: overlayIn .36s cubic-bezier(.2,.8,.2,1);
+}
+#superDiceOverlay, #superResultOverlay{
+  position: fixed; inset:0; z-index:80; border-radius:0;
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(22px) saturate(1.3);
 }
 .result-overlay.hidden{display:none}
 @keyframes overlayIn{from{opacity:0; backdrop-filter: blur(0)} to{opacity:1}}
@@ -452,7 +457,7 @@ body{
 .figure-btn:hover{transform: translateY(-1px)}
 .figure-btn.active{border-color: color-mix(in srgb, var(--accent) 35%, transparent)}
 .fig-sample{display:flex; gap:6px}
-.fs{width:34px;height:34px;border-radius:10px; display:grid; place-items:center; background: var(--panel); border:1px solid var(--panel-border)}
+.fs{width:40px;height:40px;border-radius:12px; display:grid; place-items:center; background: var(--panel); border:1px solid var(--panel-border)}
 .fs.x{color: var(--x)} .fs.o{color: var(--o)}
 .fig-label strong{font-size:13px; display:block}
 .fig-label span{font-size:11px; color: var(--muted)}
@@ -472,23 +477,45 @@ body{
 }
 @keyframes toastIn{from{transform: translateY(20px) scale(.9); opacity:0} to{transform: translateY(0) scale(1); opacity:1}}
 
-/* figure icons – simple CSS */
-.icon-x,.icon-o{display:block; position:relative; width:24px;height:24px}
-.icon-x::before,.icon-x::after{content:''; position:absolute; width:3px; height:24px; background: currentColor; left:50%; top:0; border-radius:3px}
+/* figure icons – extra large, proportional to cell */
+.icon-x,.icon-o{
+  display:block; position:relative;
+  width: 88%; height: 88%;
+  max-width: 108px; max-height: 108px;
+  min-width: 56px; min-height: 56px;
+}
+.icon-x::before,.icon-x::after{
+  content:''; position:absolute;
+  width: 11%; height: 100%;
+  background: currentColor; left:50%; top:0; border-radius:4px;
+}
 .icon-x::before{transform: translateX(-50%) rotate(45deg)}
 .icon-x::after{transform: translateX(-50%) rotate(-45deg)}
-.icon-o::before{content:''; position:absolute; inset:3px; border:3px solid currentColor; border-radius:50%}
+.icon-o::before{
+  content:''; position:absolute; inset:0;
+  border: 0.16em solid currentColor; border-radius:50%;
+  box-sizing: border-box;
+}
 
-.icon-star,.icon-moon,.icon-bolt,.icon-drop{width:22px;height:22px;display:block}
-.icon-star::before{content:'✦'; font-size:22px; line-height:1}
-.icon-moon::before{content:'☾'; font-size:20px; line-height:1}
-.icon-bolt::before{content:'⚡'; font-size:18px}
-.icon-drop::before{content:'●'; font-size:18px}
+.icon-star,.icon-moon,.icon-bolt,.icon-drop{
+  width: 90%; height: 90%;
+  max-width: 108px; max-height: 108px;
+  min-width: 56px; min-height: 56px;
+  display:grid; place-items:center;
+}
+.icon-star::before{content:'✦'; font-size: clamp(56px, 11vw, 84px); line-height:1}
+.icon-moon::before{content:'☾'; font-size: clamp(54px, 10.5vw, 80px); line-height:1}
+.icon-bolt::before{content:'⚡'; font-size: clamp(52px, 10vw, 76px)}
+.icon-drop::before{content:'●'; font-size: clamp(52px, 10vw, 76px)}
 
 /* Turn preview figures small */
-.fig-preview .icon-x,.fig-preview .icon-o{width:20px;height:20px}
-.fig-preview .icon-x::before,.fig-preview .icon-x::after{height:20px}
-.fig-preview .icon-star::before,.fig-preview .icon-moon::before{font-size:18px}
+.fig-preview .icon-x,.fig-preview .icon-o{
+  width: 22px; height:22px; min-width:0; min-height:0; max-width:none; max-height:none;
+}
+.fig-preview .icon-x::before,.fig-preview .icon-x::after{width:3px; height:100%}
+.fig-preview .icon-o::before{border-width:3px}
+.fig-preview .icon-star::before,.fig-preview .icon-moon::before{font-size:20px}
+.fig-preview .icon-bolt::before,.fig-preview .icon-drop::before{font-size:18px}
 
 /* clay extra soft shadows */
 [data-theme="clay"] .card{box-shadow: 0 4px 0 rgba(50,30,10,.06), 0 18px 40px rgba(120,80,40,.12)}
@@ -499,6 +526,141 @@ body{
 
 /* Nebula glow */
 [data-theme="nebula"] .board-shell{box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 30px 80px rgba(0,0,0,.6), 0 0 120px color-mix(in srgb, var(--accent) 18%, transparent) inset}
+
+/* TIMER */
+.game-timer{
+  display:flex; align-items:center; gap:6px;
+  background: var(--panel); border:1px solid var(--panel-border);
+  padding:8px 14px; border-radius:999px; backdrop-filter: blur(18px);
+  font-family: var(--font-mono); font-weight:700; font-size:13px;
+}
+.game-timer .timer-icon{font-size:14px}
+.game-timer.warn{border-color: #ff3d6e; color:#ff3d6e; animation: timerPulse .8s infinite}
+@keyframes timerPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,61,110,.3)}50%{box-shadow:0 0 0 8px transparent}}
+
+/* SUPER GAME */
+.super-figures{
+  position:absolute; inset:16px; z-index:4; pointer-events:none;
+}
+.super-fig{
+  position:absolute; width:96px; height:96px; margin-left:-48px; margin-top:-48px;
+  display:grid; place-items:center; border-radius:24px;
+  background: var(--panel-2); border:1px solid var(--panel-border);
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+  transition: transform .05s linear, opacity .3s;
+  will-change: transform;
+}
+.super-fig .cell-content{width:96%; height:96%}
+.super-fig.x{border-color: color-mix(in srgb, var(--x) 35%, transparent); color: var(--x)}
+.super-fig.o{border-color: color-mix(in srgb, var(--o) 35%, transparent); color: var(--o)}
+.super-fig.out{opacity:.15; filter: grayscale(1); transform: scale(.7) !important}
+.super-fig.shooter{ z-index:5; box-shadow: 0 0 0 3px var(--accent), 0 12px 30px rgba(0,0,0,.25); }
+
+.trajectory-canvas{
+  position:absolute; inset:16px; z-index:3; pointer-events:none; width: calc(100% - 32px); height: calc(100% - 32px);
+}
+
+.launch-lane{
+  max-width:560px; width:100%; margin:0 auto;
+  background: var(--panel); border:1px solid var(--panel-border);
+  border-radius: var(--radius-xl); padding:14px;
+  backdrop-filter: blur(20px); box-shadow: var(--shadow-soft);
+  display:flex; flex-direction:column; gap:12px;
+}
+.launch-lane.hidden{display:none !important}
+.lane-header{display:flex; justify-content:space-between; align-items:center; gap:12px}
+.lane-player{display:flex; align-items:center; gap:10px}
+.lane-player strong{font-size:13px; display:block}
+.lane-player span{font-size:11px; color: var(--muted)}
+.power-meter{display:flex; align-items:center; gap:8px; font-size:10px; text-transform:uppercase; letter-spacing:.12em; color: var(--muted); font-weight:700}
+.power-track{width:90px; height:8px; background: var(--bg-2); border:1px solid var(--panel-border); border-radius:999px; overflow:hidden}
+.power-fill{height:100%; width:0%; background: linear-gradient(90deg,var(--accent),var(--accent-2)); transition: width .08s linear}
+
+.lane-track{
+  position:relative; height:96px; background: linear-gradient(180deg, color-mix(in srgb, var(--bg-2) 80%, transparent), var(--panel-2));
+  border:1px solid var(--panel-border); border-radius: var(--radius-lg); overflow:hidden;
+  cursor: grab; touch-action: none; user-select:none;
+}
+.lane-track:active{cursor: grabbing}
+.lane-aim-line{
+  position:absolute; left:50%; bottom:20px; width:2px; height:0; background: linear-gradient(180deg, var(--accent), transparent);
+  transform-origin: bottom center; opacity:.6; pointer-events:none;
+}
+.shooter{
+  position:absolute; left:50%; bottom:10px; width:64px; height:64px; margin-left:-32px;
+  border-radius:18px; background: var(--panel); border:2px solid var(--accent);
+  display:grid; place-items:center; box-shadow: 0 8px 20px rgba(0,0,0,.15);
+  touch-action:none; cursor:grab; transition: box-shadow .2s;
+}
+.shooter:active{cursor:grabbing; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent), 0 12px 30px rgba(0,0,0,.2)}
+.shooter-fig{width:40px; height:40px; display:grid; place-items:center}
+.lane-hint{position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:10px; color: var(--muted); letter-spacing:.04em; pointer-events:none}
+.lane-controls{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+
+/* DICE & SUPER OVERLAY */
+.super-card{width:min(440px, 92%); max-width: 480px}
+.dice-area{display:flex; align-items:center; justify-content:center; gap:24px; margin:18px 0}
+.dice-col{display:flex; flex-direction:column; align-items:center; gap:8px}
+.dice{
+  width:64px; height:64px; border-radius:16px; background: var(--panel); border:1px solid var(--panel-border);
+  display:grid; place-items:center; font-family: var(--font-display); font-size:28px; font-weight:800;
+  box-shadow: 0 8px 20px rgba(0,0,0,.1); transition: transform .2s;
+}
+.dice.rolling{animation: diceRoll .6s cubic-bezier(.2,.8,.2,1) infinite}
+@keyframes diceRoll{0%{transform: rotate(0) scale(1)}25%{transform: rotate(10deg) scale(1.05)}50%{transform: rotate(-8deg) scale(.98)}75%{transform: rotate(6deg) scale(1.02)}100%{transform: rotate(0) scale(1)}}
+.dice.winner{border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent), 0 12px 30px rgba(0,0,0,.15); transform: scale(1.08)}
+.dice-label{font-size:11px; color: var(--muted); font-weight:700; letter-spacing:.08em; text-transform:uppercase}
+.dice-vs{font-family: var(--font-mono); font-weight:800; color: var(--muted)}
+.super-desc{font-size:12px; line-height:1.5; color: var(--muted); text-align:left; background: color-mix(in srgb, var(--bg-2) 60%, transparent); border:1px dashed var(--panel-border); padding:12px; border-radius: var(--radius-md); margin-bottom:12px}
+.super-desc small{opacity:.8}
+.super-count{display:flex; justify-content:center; gap:16px; margin:12px 0; font-family: var(--font-mono); font-size:14px}
+.super-count b{font-size:20px}
+
+.board-shell.super-mode .board{opacity:.18; pointer-events:none}
+.board-shell.super-mode{box-shadow: 0 0 0 2px var(--accent), 0 30px 80px rgba(0,0,0,.5)}
+.timer-settings{display:flex; flex-direction:column; gap:12px}
+.timer-info p{font-size:11px; line-height:1.4; color: var(--muted)}
+.timer-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+
+#settingsOverlay{
+  position: fixed; inset:0; z-index:100; 
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(20px) saturate(1.2);
+  display:grid; place-items:center; padding:20px;
+  overflow-y:auto;
+}
+#settingsOverlay.hidden{display:none !important}
+.settings-card{
+  width:min(720px, 96%); max-width:720px; max-height: 90vh; overflow-y:auto;
+  background: var(--panel-2); border:1px solid var(--panel-border);
+  border-radius: 28px; padding:0; box-shadow: var(--shadow-hard);
+  display:flex; flex-direction:column;
+}
+.settings-head{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:18px 20px; border-bottom:1px solid var(--panel-border);
+  position:sticky; top:0; background: var(--panel-2); z-index:2; border-radius:28px 28px 0 0;
+}
+.settings-head h2{font-family: var(--font-display); font-size:20px}
+.settings-body{padding:18px 20px; display:flex; flex-direction:column; gap:22px}
+.settings-section{ display:flex; flex-direction:column; gap:12px; padding-bottom:16px; border-bottom:1px dashed var(--grid-line); }
+.settings-section:last-child{border-bottom:0}
+.settings-section h3{font-size:13px; text-transform:uppercase; letter-spacing:.08em; font-family: var(--font-display)}
+.setting-row{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 0}
+.setting-row span{font-size:13px; font-weight:600}
+
+/* Compact / clean mode - hide side panels to reduce clutter */
+body.settings-compact .app{
+  grid-template-columns: 1fr;
+  max-width: 640px;
+}
+body.settings-compact .left-panel,
+body.settings-compact .right-panel{
+  display:none !important;
+}
+body.settings-compact .center{
+  max-width: 640px; margin: 0 auto; width:100%;
+}
 
 .hidden{/* duplicate but ensure */
 }

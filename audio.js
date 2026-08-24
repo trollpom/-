@@ -107,6 +107,33 @@ class AudioEngine {
     this._tone({freq: 220, freqEnd: 440, type:'sine', duration:0.5, gain:0.3});
     this._tone({freq: 440, freqEnd: 880, type:'triangle', duration:0.6, gain:0.18, delay:0.2});
   }
+  diceRoll(){
+    for(let i=0;i<6;i++){
+      this._tone({freq: 300 + Math.random()*800, type:'square', duration:0.08, gain:0.18, delay:i*0.07});
+    }
+  }
+  diceWin(){
+    this._tone({freq: 600, freqEnd: 1200, type:'sine', duration:0.35, gain:0.4});
+    this._tone({freq: 900, type:'triangle', duration:0.4, gain:0.25, delay:0.15});
+  }
+  shoot(power=0.8){
+    const f = 180 + power*500;
+    this._tone({freq: f, freqEnd: f*0.6, type:'sawtooth', duration:0.18, gain:0.35*power});
+    this._noise({duration:0.12, gain:0.12*power, filterFreq: 2000+power*3000});
+  }
+  collide(vel=1){
+    const v = Math.min(1, vel*3);
+    if(v<0.05) return;
+    this._tone({freq: 200 + v*600, type:'sine', duration:0.08, gain:0.12*v});
+    this._noise({duration:0.06, gain:0.06*v, filterFreq: 1200});
+  }
+  out(){
+    this._tone({freq: 400, freqEnd: 80, type:'triangle', duration:0.4, gain:0.3});
+    this._noise({duration:0.25, gain:0.15, filterFreq: 600});
+  }
+  tick(){
+    this._tone({freq: 1000, type:'sine', duration:0.04, gain:0.12});
+  }
 }
 
 export const audio = new AudioEngine();
